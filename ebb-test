@@ -1,0 +1,52 @@
+package com.yourpkg.api;
+
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import org.glassfish.grizzly.http.server.ServerConfiguration;
+
+import java.lang.management.ManagementFactory;
+import java.util.HashMap;
+import java.util.Map;
+
+@Path("/info")
+public class AppInfoResource {
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<String, Object> getInfo() {
+
+        Map<String, Object> info = new HashMap<>();
+
+        // Java Info
+        info.put("java.version", System.getProperty("java.version"));
+        info.put("java.vendor", System.getProperty("java.vendor"));
+        info.put("java.vm.name", System.getProperty("java.vm.name"));
+
+        // OS Info
+        info.put("os.name", System.getProperty("os.name"));
+        info.put("os.arch", System.getProperty("os.arch"));
+        info.put("os.version", System.getProperty("os.version"));
+
+        // Payara Micro info (via system properties)
+        info.put("payara.version", System.getProperty("fish.payara.version")); // Payara sets this
+        info.put("payara.build", System.getProperty("fish.payara.build.version"));
+
+        // Process & Runtime Info
+        info.put("uptime.ms", ManagementFactory.getRuntimeMXBean().getUptime());
+        info.put("start.time", ManagementFactory.getRuntimeMXBean().getStartTime());
+
+        // Memory Info
+        info.put("memory.used.mb",
+                (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024));
+
+        info.put("memory.max.mb",
+                Runtime.getRuntime().maxMemory() / (1024 * 1024));
+
+        // Thread Info
+        info.put("thread.count", ManagementFactory.getThreadMXBean().getThreadCount());
+
+        return info;
+    }
+}
