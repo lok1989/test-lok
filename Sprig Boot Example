@@ -1,0 +1,19 @@
+ @RequestMapping("/**")
+    public ResponseEntity<byte[]> forward(HttpServletRequest request,
+                                          HttpEntity<byte[]> requestEntity) {
+
+        String targetBaseUrl = "https://target-service.com";
+
+        String targetUrl = targetBaseUrl +
+                request.getRequestURI().replace("/proxy", "") +
+                (request.getQueryString() != null ? "?" + request.getQueryString() : "");
+
+        HttpMethod method = HttpMethod.valueOf(request.getMethod());
+
+        return restTemplate.exchange(
+                targetUrl,
+                method,
+                requestEntity,
+                byte[].class
+        );
+    }
