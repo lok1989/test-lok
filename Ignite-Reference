@@ -1,0 +1,65 @@
+Here’s a more professional and production-ready version of your points:
+
+---
+
+1. **Cluster Discovery Dependency (ZooKeeper)**
+   Node discovery is currently dependent on ZooKeeper for cluster coordination. ZooKeeper must be provisioned as a separate, highly available service and should be addressable via a stable endpoint (DNS alias or service name) to ensure consistent cluster formation and node discovery during provisioning and scaling operations.
+
+---
+
+2. **Controlled Node Decommissioning**
+   Node retirement should be strictly serialized. No more than one node should be removed at a time, and only after confirming that any ongoing rebalancing operations have fully completed. This is necessary to prevent excessive partition movement, avoid rebalance storms, and maintain cluster stability.
+
+---
+
+3. **Observability and Metrics Provisioning**
+   Observability tooling (metrics scraping, logging, and monitoring agents) must be provisioned as part of the node lifecycle. When a node is brought up, monitoring components should be automatically installed and configured so that metrics are immediately available for scraping by the central observability stack. This ensures end-to-end visibility of node health from the moment it joins the cluster.
+
+---
+
+If you want, I can also convert this into a **design document section (with assumptions, risks, and recommendations)** or align it specifically to **Apache Ignite + Ansible deployment standards**.
+
+
+=========================
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="ignite.cfg" class="org.apache.ignite.configuration.IgniteConfiguration">
+
+        <!-- Discovery SPI -->
+        <property name="discoverySpi">
+            <bean class="org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi">
+
+                <!-- ZooKeeper-based IP Finder -->
+                <property name="ipFinder">
+                    <bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.zk.TcpDiscoveryZookeeperIpFinder">
+
+                        <!-- ZooKeeper connection string (use DNS alias in production) -->
+                        <property name="zkConnectionString" value="zk-service:2181"/>
+
+                        <!-- Optional namespace to isolate multiple Ignite clusters -->
+                        <property name="basePath" value="/apache-ignite-cluster"/>
+
+                    </bean>
+                </property>
+
+            </bean>
+        </property>
+
+        <!-- Optional: consistent node identity -->
+        <property name="consistentId" value="${HOSTNAME}"/>
+
+        <!-- Optional: metrics / JMX -->
+        <property name="metricsLogFrequency" value="0"/>
+
+    </bean>
+
+</beans>
+
+=====================================================
